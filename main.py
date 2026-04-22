@@ -34,17 +34,38 @@ def main():
     # print(bcwds.head(5))
     
     bMSpread = bcwds["diagnosis"].value_counts()
-    bcwds["mean_area"].plot.hist(bins=20, grid=True)
-    bcwds.plot.scatter("mean_area", "mean_concave_pts")
+    # bcwds["mean_area"].plot.hist(bins=20, grid=True)
+    # bcwds.plot.scatter("mean_area", "mean_concave_pts")
     
     # meanAreaSpread.plot.hist(grid=True, bins=20)
     
     # bMSpread.plot.pie()
     
     # iloc [row number, coulmn number]
-    print(bcwds.iloc[:, 1:11].describe())
+    # print(bcwds.iloc[:, 1:11].describe())
     
-    print(bMSpread)
+    # print(bMSpread)
+    
+    # bcwds.pivot_table(
+    #     index=bcwds.index, 
+    #     columns="diagnosis", 
+    #     values="mean_area"
+    #     ).plot.hist(
+    #         bins=20, 
+    #         stacked=True,       # Stacked makes columns stack one on top of another
+    #         figsize=(12, 6)
+    #     )
+    
+    # benign and malign or whatever
+    diagnosis_colour_map = {"B": "blue", "M": "red"}
+    
+    diagnosis_colours = bcwds["diagnosis"].map(diagnosis_colour_map)
+    
+    # print(diagnosis_colours.tail(5))
+    
+    # bcwds.plot.scatter("mean_area", "mean_concave_pts", c=diagnosis_colours)
+    
+    
     
     plt.show()
 
