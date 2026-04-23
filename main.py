@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import sklearn
+from sklearn.model_selection import train_test_split
 from os import path
 from urllib.request import urlretrieve
 
@@ -65,8 +65,39 @@ def main():
     
     # bcwds.plot.scatter("mean_area", "mean_concave_pts", c=diagnosis_colours)
     
+    y = bcwds["diagnosis"]
+    X2d = bcwds[["mean_area", "mean_concave_pts"]]
     
+    X2d_train, X2d_val, y_train, y_val = train_test_split(
+        X2d, y,
+        test_size=1/3,
+        random_state=42
+    )
     
+    # X2d_train.plot.scatter(
+    #     "mean_area", 
+    #     "mean_concave_pts", 
+    #     c=y_train.map(diagnosis_colour_map)
+    # )
+    
+    sep_x1 = np.linspace(0, 1500, 2)
+    
+    sep_x2 = -0.0001 * sep_x1 + 0.15
+    
+    print(sep_x2)
+    
+    X2d_train.plot.scatter(
+        "mean_area", 
+        "mean_concave_pts", 
+        c=y_train.map(diagnosis_colour_map)
+    )
+    
+    plt.plot(sep_x1, sep_x2, c="green", linewidth=2)
+        
+    y_pred = np.where(X2d_train["mean_concave_pts"] > -0.0001 * X2d_train["mean_area"] + 0.15, "M", "B")
+
+    print(y_pred)
+
     plt.show()
 
 if __name__ == "__main__":
