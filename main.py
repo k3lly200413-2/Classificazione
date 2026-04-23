@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Perceptron
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
 
 from os import path
 
@@ -122,7 +123,7 @@ def main():
     
     
     # X2d_val is used because we need to make predictions with data we have never seen before
-    # y_pred = np.where(X2d_val["mean_concave_pts"] > -0.0001 * X2d_val["mean_area"] + 0.15, "M", "B")
+    y_pred = np.where(X2d_val["mean_concave_pts"] > -0.0001 * X2d_val["mean_area"] + 0.15, "M", "B")
 
     # correct_class = np.array(y_pred == y_val)
 
@@ -138,16 +139,38 @@ def main():
     
     model.fit(X2dn_train, y_train)
     
-    # [0] is in reference to which hyperplane you wish to use 
-    print(model.coef_[0])
+    # # [0] is in reference to which hyperplane you wish to use 
+    # print(model.coef_[0])
     
-    print(model.intercept_[0])
+    # print(model.intercept_[0])
 
-    plot_separator_on_data(X2dn_val, y_val, model)
+    # plot_separator_on_data(X2dn_val, y_val, model)
     
-    print(model.predict(X2dn_val[:3]))
+    # print(model.predict(X2dn_val[:3]))
     
-    print(model.score(X2dn_val, y_val))
+    # print(model.score(X2dn_val, y_val))
+
+    y_pred = model.predict(X2dn_val)
+    cm = confusion_matrix(y_val, y_pred)
+    
+    # print(pd.DataFrame(cm, index=model.classes_, columns=model.classes_))
+    print(cm.diagonal().sum() / cm.sum())
+    
+    #       quante istanze del validation set sono PREDETTE "M"
+    #                          ^^^^^^^^^^^^^^
+    #          B    M
+    #       B  122  0
+    #       M  20   48
+    malignant_prc = cm[1, 1] / cm[:, 1].sum()
+    print(malignant_prc)
+    
+    #        quante istanze del validation set sono REALMENTE "M"
+    #                          ^^^^^^^^^^^^^^
+    malignant_rec = cm[1, 1] / cm[1, :].sum()
+    print(malignant_rec)
+    
+    # f1-measure
+    print(2 * malignant_prc * malignant_rec / (malignant_prc + malignant_rec))
 
     plt.show()
 
