@@ -1,9 +1,38 @@
 import numpy as np
+
 import pandas as pd
+
 import matplotlib.pyplot as plt
+
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Perceptron
+
 from os import path
+
 from urllib.request import urlretrieve
+
+# benign and malign or whatever
+diagnosis_colour_map = {"B": "blue", "M": "red"}
+
+def separator_2d(model, x1):
+    # ricaviamo w e b dal modello
+    w = model.coef_[0]
+    b = model.intercept_[0]
+    # riportiamo in NumPy la formula sopra
+    return -x1 * w[0] / w[1] - b / w[1]
+
+def plot_separator_on_data(X, y, model=None):
+    X = np.array(X)
+    colors = pd.Series(y).map(diagnosis_colour_map)
+    plt.scatter(X[:, 0], X[:, 1], c=colors)
+    if model is not None:
+        xlim, ylim = plt.xlim(), plt.ylim()
+        # xlim is a tuple, *xlim unpacks them into two values
+        sep_x = np.linspace(*xlim, 2)
+        sep_y = separator_2d(model, sep_x)
+        plt.plot(sep_x, sep_y, c="green", linewidth=2)
+        plt.xlim(xlim); plt.ylim(ylim)
 
 
 def main():
@@ -56,9 +85,6 @@ def main():
     #         figsize=(12, 6)
     #     )
     
-    # benign and malign or whatever
-    diagnosis_colour_map = {"B": "blue", "M": "red"}
-    
     diagnosis_colours = bcwds["diagnosis"].map(diagnosis_colour_map)
     
     # print(diagnosis_colours.tail(5))
@@ -84,19 +110,44 @@ def main():
     
     sep_x2 = -0.0001 * sep_x1 + 0.15
     
-    print(sep_x2)
+    # print(sep_x2)
     
-    X2d_train.plot.scatter(
-        "mean_area", 
-        "mean_concave_pts", 
-        c=y_train.map(diagnosis_colour_map)
-    )
+    # X2d_train.plot.scatter(
+    #     "mean_area", 
+    #     "mean_concave_pts", 
+    #     c=y_train.map(diagnosis_colour_map)
+    # )
     
-    plt.plot(sep_x1, sep_x2, c="green", linewidth=2)
-        
-    y_pred = np.where(X2d_train["mean_concave_pts"] > -0.0001 * X2d_train["mean_area"] + 0.15, "M", "B")
+    # plt.plot(sep_x1, sep_x2, c="green", linewidth=2)
+    
+    
+    # X2d_val is used because we need to make predictions with data we have never seen before
+    # y_pred = np.where(X2d_val["mean_concave_pts"] > -0.0001 * X2d_val["mean_area"] + 0.15, "M", "B")
 
-    print(y_pred)
+    # correct_class = np.array(y_pred == y_val)
+
+    # print(correct_class.mean())
+
+    scaler = StandardScaler()
+    X2dn_train = scaler.fit_transform(X2d_train)
+    X2dn_val = scaler.transform(X2d_val)
+    
+    # plt.scatter(X2dn_train[:, 0], X2dn_train[:, 1], c=y_train.map(diagnosis_colour_map))
+
+    model = Perceptron(random_state=42)
+    
+    model.fit(X2dn_train, y_train)
+    
+    # [0] is in reference to which hyperplane you wish to use 
+    print(model.coef_[0])
+    
+    print(model.intercept_[0])
+
+    plot_separator_on_data(X2dn_val, y_val, model)
+    
+    print(model.predict(X2dn_val[:3]))
+    
+    print(model.score(X2dn_val, y_val))
 
     plt.show()
 
