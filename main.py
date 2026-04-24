@@ -4,7 +4,7 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Perceptron, LogisticRegression
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
@@ -213,8 +213,8 @@ def main():
     # print(confusion_matrix(y_val, y_pred))
     
     # print(f1_score(y_val, model.predict(X2dn_val), pos_label="M"))
-    
-    
+
+
 
     plt.show()
 
