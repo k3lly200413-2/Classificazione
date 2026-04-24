@@ -214,7 +214,25 @@ def main():
     
     # print(f1_score(y_val, model.predict(X2dn_val), pos_label="M"))
 
+    # KFold — splits randomly without caring about class distribution. 
+    # Each fold might end up with a very different ratio of classes by chance.
+    # 
+    # StratifiedKFold — splits so that each fold preserves the same class ratio 
+    # as the original dataset.
 
+    # THIS IS JUST FOR TESTING TO SEE THE DIFFERENCE BETWEEN THE TWO CLASSES
+
+    kf = KFold(3, shuffle=True, random_state=42)
+    
+    # KFold
+    for train, val in kf.split(X2dn_train, y_train):
+        print(y_train.iloc[val].value_counts())
+        
+    skf = StratifiedKFold(3, shuffle=True, random_state=42)
+
+    # StratifiedKFold
+    for train, val in skf.split(X2dn_train, y_train):
+        print(y_train.iloc[val].value_counts())
 
     plt.show()
 
