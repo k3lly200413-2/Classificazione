@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import Perceptron
+from sklearn.linear_model import Perceptron, LogisticRegression
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
 
 from os import path
@@ -154,7 +154,7 @@ def main():
     cm = confusion_matrix(y_val, y_pred)
     
     # print(pd.DataFrame(cm, index=model.classes_, columns=model.classes_))
-    print(cm.diagonal().sum() / cm.sum())
+    # print(cm.diagonal().sum() / cm.sum())
     
     #       quante istanze del validation set sono PREDETTE "M"
     #                          ^^^^^^^^^^^^^^
@@ -162,15 +162,59 @@ def main():
     #       B  122  0
     #       M  20   48
     malignant_prc = cm[1, 1] / cm[:, 1].sum()
-    print(malignant_prc)
+    # print(malignant_prc)
     
     #        quante istanze del validation set sono REALMENTE "M"
     #                          ^^^^^^^^^^^^^^
     malignant_rec = cm[1, 1] / cm[1, :].sum()
-    print(malignant_rec)
+    # print(malignant_rec)
     
     # f1-measure
-    print(2 * malignant_prc * malignant_rec / (malignant_prc + malignant_rec))
+    # print(2 * malignant_prc * malignant_rec / (malignant_prc + malignant_rec))
+
+    model = LogisticRegression(
+        solver="saga", 
+        random_state=42
+    )
+
+    model.fit(X2dn_train, y_train)
+    
+    # print(model.coef_[0])
+    
+    # print(model.intercept_[0])
+    
+    # plot_separator_on_data(X2dn_train, y_train, model)
+    
+    # print(model.classes_)
+    
+    # print(model.predict_proba(X2dn_val[:3]))
+    
+    y_pred = model.predict(X2dn_val)
+    
+    # estraggo un campione di 100x100 punti nel piano
+    mx1, mx2 = np.meshgrid(
+        np.linspace(-2, 5.5, 100), 
+        np.linspace(-2, 4.5, 100)
+    )
+    # estraggo le probabilità della classe M per ciascun punto
+    # ravel just turns a multidimentional array into a 1-D array by just concatinating the inner arrays
+    # my = model.predict_proba(
+    #     np.c_[
+    #         mx1.ravel(), 
+    #         mx2.ravel()]
+    #     )[:, 1].reshape(mx1.shape)
+    # # disegno il grafico
+    # plt.contourf(mx1, mx2, my, cmap="summer")
+    # plt.scatter(*X2dn_train.T, c=y_train.map(diagnosis_colour_map))
+    # plt.colorbar()
+    
+    # print(model.score(X2dn_val, y_val))
+    
+    # print(confusion_matrix(y_val, y_pred))
+    
+    # print(f1_score(y_val, model.predict(X2dn_val), pos_label="M"))
+    
+    
 
     plt.show()
 
