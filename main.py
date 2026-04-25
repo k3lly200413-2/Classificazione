@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split, KFold, StratifiedKFold, Gr
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Perceptron, LogisticRegression
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
+from sklearn.tree import DecisionTreeClassifier, export_text, plot_tree
+from sklearn.pipeline import Pipeline
 
 from os import path
 
@@ -247,22 +249,60 @@ def main():
     
     grid = [
         {
-            "penalty":  ["l2", "l1"],   # 2
-            "C":        [0.1, 1, 10],   # 3
+            "scaler": [None, StandardScaler()],
+            "lr__penalty": [None]
         },
         {
-            "penalty":  ["elasticnet"], # 1
-            "C":        [0.1, 1, 10],   # 3
-            "l1_ratio": [0.2, 0.5],     # 2
+            "scaler": [None, StandardScaler()],
+            "lr__penalty":  ["l2", "l1"],   # 2
+            "lr__C":        [0.01, 0.1, 1, 10, 100],   # 3
         },
+        {
+            "scaler": [None, StandardScaler()],
+            "lr__penalty":  ["elasticnet"], # 1
+            "lr__C":        [0.01, 0.1, 1, 10, 100],   # 3
+            "lr__l1_ratio": [0.2, 0.5],     # 2
+        }
     ]
     
+    # gs = GridSearchCV(model, grid, cv=skf)
+    
+    # gs.fit(X2dn_train, y_train)
+    
+    # print(gs.best_params_)
+    
+    # print(pd.DataFrame(gs.cv_results_).sort_values("rank_test_score").head(5))
+
+    model = DecisionTreeClassifier(max_depth=2)
+    model.fit(X2d_train, y_train)
+    
+    # print(export_text(model, feature_names=X2d_train.columns.to_list()))
+    # plt.figure(figsize=(9, 6))
+    # plot_tree(model, feature_names=X2d_train.columns.to_list())
+
+    # estraggo un campione di 100x100 punti nel piano
+    mx1, mx2 = np.meshgrid(np.linspace(0, 2700, 100), np.linspace(0, 0.22, 100))
+    # estraggo le probabilità della classe M per ciascun punto
+    my = model.predict_proba(np.c_[mx1.ravel(), mx2.ravel()])[:, 1].reshape(mx1.shape)
+    # disegno il grafico
+    plt.figure(figsize=(9, 6))
+    plt.contourf(mx1, mx2, my, cmap="summer")
+    plt.scatter(*X2d_train.values.T, c=y_train.map(diagnosis_colour_map))
+    plt.colorbar()
+
+    X = bcwds.drop(columns="diagnosis")
+    y = bcwds["diagnosis"]
+    
+    model = Pipeline([
+        ("scaler", StandardScaler()),
+        ("lr", LogisticRegression(solver="saga", penalty="l1", C=0.1))
+    ])
+
+    model.fit(X, y)
+    print(pd.Series(model.named_steps["lr"].coef_[0], index=X.columns))
+
     gs = GridSearchCV(model, grid, cv=skf)
-    
-    gs.fit(X2dn_train, y_train)
-    
-    print(gs.best_params_)
-    
+    gs.fit(X, y)
     print(pd.DataFrame(gs.cv_results_).sort_values("rank_test_score").head(5))
 
     plt.show()
