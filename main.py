@@ -4,7 +4,7 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split, KFold, StratifiedKFold
+from sklearn.model_selection import train_test_split, KFold, StratifiedKFold, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Perceptron, LogisticRegression
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
@@ -225,14 +225,45 @@ def main():
     kf = KFold(3, shuffle=True, random_state=42)
     
     # KFold
-    for train, val in kf.split(X2dn_train, y_train):
-        print(y_train.iloc[val].value_counts())
+    # for train, val in kf.split(X2dn_train, y_train):
+    #     print(y_train.iloc[val].value_counts())
         
     skf = StratifiedKFold(3, shuffle=True, random_state=42)
 
     # StratifiedKFold
-    for train, val in skf.split(X2dn_train, y_train):
-        print(y_train.iloc[val].value_counts())
+    # for train, val in skf.split(X2dn_train, y_train):
+    #     print(y_train.iloc[val].value_counts())
+        
+    model = LogisticRegression(solver="saga", random_state=42)
+    
+    # L2 and L1 cases would be repeated with l1_ratio that does not 
+    # influence the outcome
+    
+    grid = {
+        "penalty":  [ "l2", "l1", "elasticnet" ], # 3
+        "C":        [ 0.1, 1, 10 ],               # 3
+        "l1_ratio": [ 0.2, 0.5 ],                 # 2
+    }
+    
+    grid = [
+        {
+            "penalty":  ["l2", "l1"],   # 2
+            "C":        [0.1, 1, 10],   # 3
+        },
+        {
+            "penalty":  ["elasticnet"], # 1
+            "C":        [0.1, 1, 10],   # 3
+            "l1_ratio": [0.2, 0.5],     # 2
+        },
+    ]
+    
+    gs = GridSearchCV(model, grid, cv=skf)
+    
+    gs.fit(X2dn_train, y_train)
+    
+    print(gs.best_params_)
+    
+    print(pd.DataFrame(gs.cv_results_).sort_values("rank_test_score").head(5))
 
     plt.show()
 
